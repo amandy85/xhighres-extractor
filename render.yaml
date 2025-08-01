@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: xhighres-extractor
+    env: python
+    buildCommand: chmod +x build.sh && ./build.sh
+    startCommand: chmod +x start.sh && ./start.sh
+    python:
+      version: "3.9.13"
