@@ -7,6 +7,8 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from urllib.parse import urljoin
 import time
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium import webdriver
 
 app = Flask(__name__)
 
@@ -43,6 +45,11 @@ def extract_urls(html_content, base_url=None):
         urls.append(url)
     
     return urls
+
+
+def setup_driver():
+    driver_path = ChromeDriverManager().install()
+    return webdriver.Chrome(executable_path=driver_path)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():

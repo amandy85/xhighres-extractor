@@ -1,13 +1,20 @@
-# Install Chrome first
-sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get install -fy
+#!/bin/bash
 
-# Get installed Chrome version (output: "Google Chrome 138.0.7080.0")
-CHROME_VERSION=$(google-chrome --version)
+# Install Chrome without sudo
+wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+dpkg -x google-chrome-stable_current_amd64.deb /tmp/chrome
+export PATH="/tmp/chrome/opt/google/chrome:$PATH"
 
-# Extract the major version number (e.g., 138)
-CHROME_MAJOR=${CHROME_VERSION#* }  # Remove "Google Chrome"
-CHROME_MAJOR=${CHROME_MAJOR%%.*}   # Take only first number
+# Get Chrome version
+CHROME_VERSION=$(/tmp/chrome/opt/google/chrome/google-chrome --version | awk '{print $3}')
+CHROME_MAJOR=${CHROME_VERSION%%.*}
 
-# Fetch matching ChromeDriver version
-CHROMEDRIVER_VERSION=$(wget -qO- "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_MAJOR")
+# Download matching ChromeDriver
+CHROMEDRIVER_URL="https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_MAJOR"
+CHROMEDRIVER_VERSION=$(wget -qO- $CHROMEDRIVER_URL)
 wget "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip"
+unzip chromedriver_linux64.zip
+chmod +x chromedriver
+
+# Install Python dependencies
+pip install -r requirements.txt
