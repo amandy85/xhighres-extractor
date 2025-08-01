@@ -20,16 +20,11 @@ def setup_selenium():
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--window-size=1920,1080")
+    chrome_options.binary_location = "/opt/render/project/src/.render/chrome/opt/google/chrome/google-chrome"
     
-    # Use Render-specific Chrome path if exists, else fallback
-    if os.path.exists(RENDER_CHROME_PATH):
-        chrome_options.binary_location = RENDER_CHROME_PATH
-        print(f"Using Render Chrome at: {RENDER_CHROME_PATH}")
-    else:
-        print("Using system Chrome")
-    
+    # Use the installed ChromeDriver directly
     return webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()),
+        service=Service(executable_path="/usr/local/bin/chromedriver"),
         options=chrome_options
     )
 
