@@ -11,14 +11,15 @@ import os
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload size
 
+
 def setup_selenium():
-    """Configure and return a headless Chrome browser"""
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--window-size=1920,1080")
+    chrome_options.binary_location = "/usr/bin/chromium"  # Render's Chrome path
     
     return webdriver.Chrome(
         service=Service(ChromeDriverManager().install()),
