@@ -48,17 +48,12 @@ def index():
                     soup = BeautifulSoup(driver.page_source, 'html.parser')
                     img_tags = soup.find_all('img')
                     
-                    # Filter images with xhighres attributes
+                    # Filter ONLY images with xhighres attributes
                     for i, img in enumerate(img_tags):
                         if img.get('xhighres'):
                             images.append({
                                 'index': i+1,
                                 'url': img['xhighres']
-                            })
-                        elif img.get('src'):
-                            images.append({
-                                'index': i+1,
-                                'url': img['src']
                             })
                 except Exception as e:
                     error = f"Error processing URL: {str(e)}"
@@ -76,17 +71,12 @@ def index():
                         soup = BeautifulSoup(file.read().decode('utf-8'), 'html.parser')
                         img_tags = soup.find_all('img')
                         
-                        # Extract images with xhighres attributes
+                        # Filter ONLY images with xhighres attributes
                         for i, img in enumerate(img_tags):
                             if img.get('xhighres'):
                                 images.append({
                                     'index': i+1,
                                     'url': img['xhighres']
-                                })
-                            elif img.get('src'):
-                                images.append({
-                                    'index': i+1,
-                                    'url': img['src']
                                 })
                     except Exception as e:
                         error = f"Error processing file: {str(e)}"
