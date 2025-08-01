@@ -12,7 +12,7 @@ rm google-chrome-stable_current_amd64.deb
 
 echo "=== Setting Up Python Environment ==="
 pip install --upgrade pip
-pip install gunicorn flask selenium webdriver-manager
+pip install -r requirements.txt  # Install all dependencies from requirements
 
 echo "=== Verifying Installations ==="
-python -c "from selenium import webdriver; from webdriver_manager.chrome import ChromeDriverManager; print('Dependencies verified')"
+python -c "from selenium import webdriver; from webdriver_manager.chrome import ChromeDriverManager; from bs4 import BeautifulSoup; print('All dependencies verified')"
