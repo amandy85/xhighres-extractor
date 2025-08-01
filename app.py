@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, request
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -6,11 +7,11 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from urllib.parse import urljoin
 import time
-import os
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload size
 
+# Render-specific Chrome path
+RENDER_CHROME_PATH = "/opt/render/project/src/.render/chrome/opt/google/chrome/google-chrome"
 
 def setup_selenium():
     chrome_options = Options()
@@ -19,12 +20,20 @@ def setup_selenium():
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.binary_location = "/usr/bin/chromium"  # Render's Chrome path
+    
+    # Use Render-specific Chrome path if exists, else fallback
+    if os.path.exists(RENDER_CHROME_PATH):
+        chrome_options.binary_location = RENDER_CHROME_PATH
+        print(f"Using Render Chrome at: {RENDER_CHROME_PATH}")
+    else:
+        print("Using system Chrome")
     
     return webdriver.Chrome(
         service=Service(ChromeDriverManager().install()),
         options=chrome_options
     )
+
+# ... rest of your Flask code ...
 
 def extract_urls(html_content, base_url=None):
     """Extract xhighres URLs from HTML, making relative URLs absolute"""
