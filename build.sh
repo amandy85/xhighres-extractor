@@ -1,20 +1,18 @@
 #!/bin/bash
-set -e  # Exit on error
+set -e  # Exit immediately if any command fails
 
 echo "=== Installing System Dependencies ==="
-apt-get update
-apt-get install -y wget unzip gnupg
 
-echo "=== Installing Chrome ==="
-wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/googlechrome-linux-keyring.gpg
-echo "deb [arch=amd64 signed-by=/usr/share/keyrings/googlechrome-linux-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
-apt-get update
-apt-get install -y google-chrome-stable
+# Install Chrome without apt (Render-compatible)
+echo "Downloading Chrome..."
+wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+mkdir -p chrome
+dpkg -x google-chrome-stable_current_amd64.deb chrome
+rm google-chrome-stable_current_amd64.deb
 
-echo "=== Installing Python Dependencies ==="
+echo "=== Setting Up Python Environment ==="
 pip install --upgrade pip
-pip install -r requirements.txt
+pip install gunicorn flask selenium webdriver-manager
 
 echo "=== Verifying Installations ==="
-google-chrome --version
-python -c "from webdriver_manager.chrome import ChromeDriverManager; print('webdriver-manager available')"
+python -c "from selenium import webdriver; from webdriver_manager.chrome import ChromeDriverManager; print('Dependencies verified')"

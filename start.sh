@@ -1,13 +1,19 @@
 #!/bin/bash
 set -e  # Exit on error
 
-# Add Chrome to PATH
-export PATH="/usr/bin/google-chrome-stable:$PATH"
+# Set Chrome path
+export PATH="$PWD/chrome/opt/google/chrome:$PATH"
 
-# Activate virtual environment if exists
-if [ -d "venv" ]; then
-  source venv/bin/activate
-fi
+# Initialize WebDriver (warm-up)
+python -c "
+from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service
+service = Service(ChromeDriverManager().install())
+options = webdriver.ChromeOptions()
+options.add_argument('--headless')
+webdriver.Chrome(service=service, options=options).quit()
+"
 
 # Start Gunicorn
-exec gunicorn --bind 0.0.0.0:$PORT app:app
+exec gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 app:app
