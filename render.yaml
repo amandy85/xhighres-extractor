@@ -2,10 +2,11 @@ services:
   - type: web
     name: xhighres-extractor
     runtime: docker
-    region: oregon
     plan: starter
+    region: oregon
     dockerfilePath: ./Dockerfile
-    dockerContext: ./
+    dockerContext: .
+    dockerCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 app:app
     envVars:
       - key: PORT
         value: 5000
