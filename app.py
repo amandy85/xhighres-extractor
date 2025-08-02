@@ -6,6 +6,9 @@ import os
 import logging
 import time
 from bs4 import BeautifulSoup
+# Add to the top of app.py
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -21,7 +24,31 @@ def create_driver():
     if os.path.exists("/app/chrome/opt/google/chrome/google-chrome"):
         chrome_options.binary_location = "/app/chrome/opt/google/chrome/google-chrome"
     
-    service = Service(ChromeDriverManager().install())
+    # Manually locate the chromedriver binary
+    chromedriver_path = None
+    base_path = "/opt/render/.wdm/drivers/chromedriver/linux64"
+    
+    # Search for the actual chromedriver binary
+    for version_dir in os.listdir(base_path):
+        version_path = os.path.join(base_path, version_dir)
+        if os.path.isdir(version_path):
+            for item in os.listdir(version_path):
+                item_path = os.path.join(version_path, item)
+                if os.path.isfile(item_path) and "chromedriver" in item and not item.endswith(".zip"):
+                    chromedriver_path = item_path
+                    break
+            if chromedriver_path:
+                break
+    
+    if not chromedriver_path:
+        # Fallback to ChromeDriverManager if manual search fails
+        from webdriver_manager.chrome import ChromeDriverManager
+        chromedriver_path = ChromeDriverManager().install()
+    
+    # Ensure correct permissions
+    os.chmod(chromedriver_path, 0o755)
+    
+    service = Service(chromedriver_path)
     driver = webdriver.Chrome(service=service, options=chrome_options)
     driver.set_page_load_timeout(30)
     return driver
