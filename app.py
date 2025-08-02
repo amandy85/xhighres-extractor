@@ -1,54 +1,31 @@
 from flask import Flask, render_template, request
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 import os
 import logging
 import time
 from bs4 import BeautifulSoup
-# Add to the top of app.py
-import logging
-logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 def create_driver():
-    """Create configured Chrome WebDriver"""
+    """Create configured Chrome WebDriver for Render"""
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--window-size=1920,1080")
     
-    # For Render deployment
-    if os.path.exists("/app/chrome/opt/google/chrome/google-chrome"):
-        chrome_options.binary_location = "/app/chrome/opt/google/chrome/google-chrome"
+    # Render-specific paths
+    chrome_bin = "/opt/render/project/.render/chrome/opt/google/chrome/chrome"
+    chromedriver_bin = "/opt/render/project/.render/drivers/chromedriver"
     
-    # Manually locate the chromedriver binary
-    chromedriver_path = None
-    base_path = "/opt/render/.wdm/drivers/chromedriver/linux64"
+    if os.path.exists(chrome_bin):
+        chrome_options.binary_location = chrome_bin
     
-    # Search for the actual chromedriver binary
-    for version_dir in os.listdir(base_path):
-        version_path = os.path.join(base_path, version_dir)
-        if os.path.isdir(version_path):
-            for item in os.listdir(version_path):
-                item_path = os.path.join(version_path, item)
-                if os.path.isfile(item_path) and "chromedriver" in item and not item.endswith(".zip"):
-                    chromedriver_path = item_path
-                    break
-            if chromedriver_path:
-                break
-    
-    if not chromedriver_path:
-        # Fallback to ChromeDriverManager if manual search fails
-        from webdriver_manager.chrome import ChromeDriverManager
-        chromedriver_path = ChromeDriverManager().install()
-    
-    # Ensure correct permissions
-    os.chmod(chromedriver_path, 0o755)
-    
-    service = Service(chromedriver_path)
+    service = Service(executable_path=chromedriver_bin)
     driver = webdriver.Chrome(service=service, options=chrome_options)
     driver.set_page_load_timeout(30)
     return driver
@@ -62,7 +39,6 @@ def index():
             images = []
             error = None
             
-            # Process URL input
             if request.form.get('url'):
                 url = request.form['url']
                 source = f"URL: {url}"
@@ -71,12 +47,9 @@ def index():
                     driver.get(url)
                     time.sleep(3)  # Wait for JS execution
                     
-                    # Extract images with BeautifulSoup
+                    # Extract images with xhighres attributes
                     soup = BeautifulSoup(driver.page_source, 'html.parser')
-                    img_tags = soup.find_all('img')
-                    
-                    # Filter ONLY images with xhighres attributes
-                    for i, img in enumerate(img_tags):
+                    for i, img in enumerate(soup.find_all('img')):
                         if img.get('xhighres'):
                             images.append({
                                 'index': i+1,
@@ -86,20 +59,15 @@ def index():
                     error = f"Error processing URL: {str(e)}"
                     logging.error(error)
                 finally:
-                    if driver:
-                        driver.quit()
+                    driver.quit()
             
-            # Process file upload
             elif 'file' in request.files:
                 file = request.files['file']
                 if file.filename != '' and file.filename.endswith(('.html', '.htm')):
                     source = f"File: {file.filename}"
                     try:
                         soup = BeautifulSoup(file.read().decode('utf-8'), 'html.parser')
-                        img_tags = soup.find_all('img')
-                        
-                        # Filter ONLY images with xhighres attributes
-                        for i, img in enumerate(img_tags):
+                        for i, img in enumerate(soup.find_all('img')):
                             if img.get('xhighres'):
                                 images.append({
                                     'index': i+1,

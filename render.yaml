@@ -6,3 +6,8 @@ services:
     startCommand: chmod +x start.sh && ./start.sh
     python:
       version: "3.9.13"
+    envVars:
+      - key: DISPLAY
+        value: ":99"
+      - key: PATH
+        value: "/opt/render/project/.render/chrome/opt/google/chrome:/opt/render/project/.render/drivers:$PATH"
