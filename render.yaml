@@ -1,19 +1,10 @@
 services:
   - type: web
     name: xhighres-extractor
-    env: python
-    buildCommand: chmod +x build.sh && ./build.sh
-    startCommand: chmod +x start.sh && ./start.sh
-    region: oregon  # Choose a region close to you
-    plan: starter   # Use appropriate plan
+    runtime: docker
+    region: oregon
+    plan: starter
+    dockerfilePath: ./Dockerfile
     envVars:
-      - key: DISPLAY
-        value: ":99"
-      - key: CHROME_BIN
-        value: "/opt/render/project/.render/chrome/opt/google/chrome/chrome"
-      - key: CHROMEDRIVER_PATH
-        value: "/opt/render/project/.render/drivers/chromedriver"
-      - key: PATH
-        value: "/opt/render/project/.render/chrome/opt/google/chrome:/opt/render/project/.render/drivers:$PATH"
-      - key: LD_LIBRARY_PATH
-        value: "/opt/render/project/.render/chrome/opt/google/chrome:$LD_LIBRARY_PATH"
+      - key: PORT
+        value: 5000

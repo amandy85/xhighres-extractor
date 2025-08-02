@@ -10,7 +10,7 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 def create_driver():
-    """Create configured Chrome WebDriver for Render"""
+    """Create configured Chrome WebDriver"""
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
@@ -23,30 +23,14 @@ def create_driver():
     chrome_options.add_argument("--disable-renderer-backgrounding")
     chrome_options.add_argument("--disable-features=TranslateUI")
     chrome_options.add_argument("--disable-ipc-flooding-protection")
-    
-    # Render-specific paths
-    chrome_bin = "/opt/render/project/.render/chrome/opt/google/chrome/chrome"
-    chromedriver_bin = "/opt/render/project/.render/drivers/chromedriver"
-    
-    # Set Chrome binary location if it exists
-    if os.path.exists(chrome_bin):
-        chrome_options.binary_location = chrome_bin
-        logging.info(f"Using Chrome binary at: {chrome_bin}")
-    else:
-        logging.warning(f"Chrome binary not found at: {chrome_bin}")
-    
-    # Set ChromeDriver path
-    if os.path.exists(chromedriver_bin):
-        service = Service(executable_path=chromedriver_bin)
-        logging.info(f"Using ChromeDriver at: {chromedriver_bin}")
-    else:
-        logging.warning(f"ChromeDriver not found at: {chromedriver_bin}")
-        # Fallback to system ChromeDriver
-        service = Service()
+    chrome_options.add_argument("--remote-debugging-port=9222")
     
     try:
+        # Use system ChromeDriver (installed in Docker)
+        service = Service('/usr/local/bin/chromedriver')
         driver = webdriver.Chrome(service=service, options=chrome_options)
         driver.set_page_load_timeout(30)
+        logging.info("Chrome driver created successfully")
         return driver
     except Exception as e:
         logging.error(f"Failed to create Chrome driver: {str(e)}")
@@ -131,7 +115,19 @@ def index():
 @app.route('/health')
 def health():
     """Health check endpoint"""
-    return {'status': 'healthy', 'chrome_available': os.path.exists('/opt/render/project/.render/chrome/opt/google/chrome/chrome')}
+    try:
+        # Quick Chrome test
+        driver = create_driver()
+        driver.quit()
+        chrome_status = "working"
+    except:
+        chrome_status = "failed"
+    
+    return {
+        'status': 'healthy', 
+        'chrome_status': chrome_status,
+        'chromedriver_path': '/usr/local/bin/chromedriver'
+    }
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
